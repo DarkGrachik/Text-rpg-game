@@ -1,0 +1,73 @@
+/* Основной контейнер чата */
+#chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 97vh;
+    width: 97vw;
+    font-family: Arial, sans-serif;
+}
+
+#menu-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    height: 97vh;
+    width: 97vw;
+    font-family: Arial, sans-serif;
+}
+
+/* Окно чата */
+#chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Сообщения от пользователя и ИИ */
+.user {
+    text-align: right;
+    margin: 5px 0;
+    padding: 5px;
+    background-color: #e1f5fe;
+    border-radius: 5px;
+}
+
+.ai {
+    text-align: left;
+    margin: 5px 0;
+    padding: 5px;
+    background-color: #f1f8e9;
+    border-radius: 5px;
+}
+
+/* Контейнер ввода */
+#input-container {
+    display: flex;
+    padding: 10px;
+    background-color: #ffffff;
+    border-top: 1px solid #ddd;
+}
+
+#message-input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.button {
+    padding: 10px;
+    margin-left: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: #0056b3;
+}
