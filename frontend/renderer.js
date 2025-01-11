@@ -70,3 +70,27 @@ function sendMessage() {
     // Очищаем поле ввода после отправки
     document.getElementById('message-input').value = '';
 }
+    // Функция для загрузки всех сообщений
+function loadMessages() {
+    fetch('http://localhost:5000/messages')
+        .then(response => response.json())
+        .then(data => {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = ''; // Очистить чат перед загрузкой
+
+            data.forEach(message => {
+                const isUser = message.sender === 'user';
+                addMessage(isUser ? 'Вы' : 'ИИ', message.content, isUser);
+            });
+        })
+        .catch(error => {
+            console.error('Ошибка при загрузке сообщений:', error);
+        });
+}
+
+// Загрузка сообщений при открытии чата
+document.addEventListener('DOMContentLoaded', () => {
+    loadMessages();
+});
+
+
