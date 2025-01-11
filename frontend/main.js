@@ -1,3 +1,4 @@
+// main.js
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
@@ -36,10 +37,24 @@ app.on('activate', () => {
 });
 
 // Обработка сообщения от рендерера для переключения страниц
-ipcMain.on('navigate-to-chat', () => {
-    loadPage('chat_app.html');
+ipcMain.on('navigate-to-chats', () => {
+    loadPage('chats.html');
 });
 
 ipcMain.on('navigate-to-menu', () => {
     loadPage('menu.html');
 });
+
+ipcMain.on('navigate-to-chat', () => {
+    loadPage('chat_app.html');
+});
+
+ipcMain.on('navigate-to-new-chat', () => {
+    loadPage('new_chat.html'); // Переход на страницу нового чата
+});
+
+ipcMain.on('navigate-back', () => {
+    loadPage('chats.html'); // Переход на главную страницу
+});
+
+
