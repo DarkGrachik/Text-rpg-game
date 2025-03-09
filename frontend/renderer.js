@@ -3,6 +3,7 @@ let currentChatId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     const startChatsButton = document.getElementById('chats-button');
+    const charactersButton = document.getElementById('characters-button');
     const newChatButton = document.getElementById('new-chat-button');
     const backToMenuButton = document.getElementById('menu-button');
     const backButton = document.getElementById('back-button');
@@ -10,6 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (startChatsButton) {
         startChatsButton.addEventListener('click', () => {
             ipcRenderer.send('navigate-to-chats');
+        });
+    }
+
+    if (charactersButton) {
+        charactersButton.addEventListener('click', () => {
+            ipcRenderer.send('navigate-to-characters');
         });
     }
 
