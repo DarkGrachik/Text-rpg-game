@@ -49,8 +49,16 @@ ipcMain.on('navigate-to-chat', () => {
     loadPage('chat_app.html');
 });
 
+ipcMain.on('navigate-to-character', () => {
+    loadPage('character_details.html');
+});
+
 ipcMain.on('navigate-to-new-chat', () => {
     loadPage('new_chat.html'); // Переход на страницу нового чата
+});
+
+ipcMain.on('navigate-to-new-character', () => {
+    loadPage('new_character.html'); // Переход на страницу нового чата
 });
 
 ipcMain.on('navigate-back', () => {

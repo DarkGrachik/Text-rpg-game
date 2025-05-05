@@ -4,12 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Создание персонажа</title>
-    <script defer src="characters.js"></script>
+    <script src="../characters.js" defer></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <h1>Создание персонажа</h1>
-    <label for="character-name">Имя персонажа:</label>
-    <input type="text" id="character-name">
-    <button id="create-character-button">Создать</button>
+    <form id="create-character-form">
+        <label for="character-name">Имя персонажа:</label>
+        <input type="text" id="character-name" name="name" required>
+
+        <label for="character-class">Класс:</label>
+        <input type="text" id="character-class" name="character_class" required>
+
+        <label for="character-race">Раса:</label>
+        <input type="text" id="character-race" name="race" required>
+
+        <label for="strength">Сила:</label>
+        <input type="number" id="strength" name="strength" value="0">
+
+        <label for="dexterity">Ловкость:</label>
+        <input type="number" id="dexterity" name="dexterity" value="0">
+
+        <label for="constitution">Телосложение:</label>
+        <input type="number" id="constitution" name="constitution" value="0">
+
+        <label for="intelligence">Интеллект:</label>
+        <input type="number" id="intelligence" name="intelligence" value="0">
+
+        <label for="wisdom">Мудрость:</label>
+        <input type="number" id="wisdom" name="wisdom" value="0">
+
+        <label for="charisma">Харизма:</label>
+        <input type="number" id="charisma" name="charisma" value="0">
+
+        <label for="level">Уровень:</label>
+        <input type="number" id="level" name="level" value="1">
+
+        <label for="appearance">Внешность:</label>
+        <textarea id="appearance" name="appearance" rows="3"></textarea>
+
+        <label for="background">Предыстория:</label>
+        <textarea id="background" name="background" rows="4"></textarea>
+
+        <button type="button" id="generate-character-button" class="button">Сгенерировать</button>
+        <button type="button" id="create-character-button" class="button">Создать</button>
+        <button type="button" id="back-to-characters" class="button">Назад</button>
+    </form>
 </body>
 </html>
