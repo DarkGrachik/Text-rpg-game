@@ -1,8 +1,14 @@
 from flask import Flask, request, jsonify
 import requests
-from db import SessionLocal, Message, Chat
+from db import SessionLocal, Message, Chat, Character
+from flask_cors import CORS
+import json
+import re
 
-app = Flask(__name__) 
+
+app = Flask(__name__)
+CORS(app, supports_credentials=True)
+
 
 # Функция для сохранения чата
 def save_chat(title):
@@ -51,6 +57,47 @@ def get_all_chats():
     finally:
         db.close()
 
+# Функция для загрузки всех персонажей
+def get_all_characters():
+    db = SessionLocal()
+    try:
+        characters = db.query(Character).filter(Character.deleted == False).all()  # Загружаем только не удаленные чаты
+        print(f"Загружено {len(characters)} персонажей")  # Логирование
+        return characters
+    except Exception as e:
+        print(f"Ошибка загрузки персонажей: {e}")
+        return []
+    finally:
+        db.close()
+
+def save_character(data):
+    db = SessionLocal()
+    try:
+        character = Character(
+            name=data.get('name', ''),
+            character_class=data.get('character_class', ''),
+            race=data.get('race', ''),
+            strength=data.get('strength', 0),
+            dexterity=data.get('dexterity', 0),
+            constitution=data.get('constitution', 0),
+            intelligence=data.get('intelligence', 0),
+            wisdom=data.get('wisdom', 0),
+            charisma=data.get('charisma', 0),
+            level=data.get('level', 1),
+            appearance=data.get('appearance', ''),
+            background=data.get('background', '')
+        )
+        db.add(character)
+        db.commit()
+        db.refresh(character)
+        print(f"Персонаж сохранен: {character.name}")
+        return character
+    except Exception as e:
+        print(f"Ошибка сохранения персонажа: {e}")
+        db.rollback()
+        return None
+    finally:
+        db.close()
 
 # Функция для загрузки сообщений по чату
 def get_messages_by_chat(chat_id):
@@ -171,6 +218,141 @@ def delete_chat(chat_id):
         return jsonify({'error': f'Ошибка удаления чата: {e}'}), 500
     finally:
         db.close()
+
+@app.route('/characters', methods=['POST'])
+def create_character():
+    data = request.get_json()
+
+    # Простая проверка на наличие обязательных полей
+    if not data.get('name'):
+        return jsonify({'error': 'Name is required'}), 400
+
+    character = save_character(data)
+    if character:
+        return jsonify({"id": character.id, "name": character.name, "created_at": character.created_at.isoformat()}), 201
+    else:
+        return jsonify({'error': 'Failed to create character'}), 500
+
+@app.route('/characters', methods=['GET'])
+def get_characters():
+    characters = get_all_characters()
+    return jsonify([{"id": character.id, "name": character.name, "created_at": character.created_at.isoformat()} for character in characters])
+
+def get_character_by_id(character_id):
+    db = SessionLocal()
+    try:
+        character = db.query(Character).filter(Character.id == character_id, Character.deleted == False).first()
+        return character
+    except Exception as e:
+        print(f"Ошибка получения персонажа: {e}")
+        return None
+    finally:
+        db.close()
+
+@app.route('/characters/<int:character_id>', methods=['GET'])
+def get_character(character_id):
+    character = get_character_by_id(character_id)
+    if not character:
+        return jsonify({'error': 'Персонаж не найден'}), 404  # Ошибка 404, если персонаж не найден
+    
+    # Если персонаж найден, возвращаем его данные
+    return jsonify({
+        'id': character.id,
+        'name': character.name,
+        'character_class': character.character_class,
+        'race': character.race,
+        'level': character.level,
+        'strength': character.strength,
+        'dexterity': character.dexterity,
+        'constitution': character.constitution,
+        'intelligence': character.intelligence,
+        'wisdom': character.wisdom,
+        'charisma': character.charisma,
+        'appearance': character.appearance,
+        'background': character.background
+    })        
+
+@app.route('/characters/<int:character_id>/delete', methods=['POST'])
+def delete_character(character_id):
+    db = SessionLocal()
+    try:
+        character = db.query(Character).filter(Character.id == character_id).first()
+        if character:
+            character.deleted = True
+            db.commit()
+            return jsonify({'message': f'Персонаж {character_id} успешно удален.'}), 200
+        else:
+            return jsonify({'error': 'Персонаж не найден.'}), 404
+    except Exception as e:
+        db.rollback()
+        return jsonify({'error': f'Ошибка удаления персонажа: {e}'}), 500
+    finally:
+        db.close()
+
+def generate_character_data(partial_data):
+    # Формируем промпт
+    prompt = "На основе указанных данных заполни недостающие поля персонажа DnD. Если на основе данных их заполнить не получается, то придумай любые данные сам. Верни результат в формате JSON со следующими ключами: " \
+             "strength, dexterity, constitution, intelligence, wisdom, charisma, appearance, background.\n"
+    for key, value in partial_data.items():
+        if value:
+            prompt += f"{key.capitalize()}: {value}\n"
+
+    # Получение токена
+    access_token = get_access_token()
+    if not access_token:
+        return None, 'Ошибка авторизации.'
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': f'Bearer {access_token}'
+    }
+    payload = {
+        "model": "GigaChat",
+        "messages": [{"role": "user", "content": prompt}],
+        "n": 1,
+        "stream": False,
+        "max_tokens": 512,
+        "repetition_penalty": 1,
+        "update_interval": 0
+    }
+
+    response = requests.post(GIGACHAT_API_URL, headers=headers, json=payload, verify=False)
+
+    if response.status_code == 200:
+        content = response.json().get('choices', [{}])[0].get('message', {}).get('content', '')
+        print("Полный ответ модели:\n", content)
+
+        # Попытка найти JSON-блок
+        match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', content, re.DOTALL)
+        if match:
+            try:
+                parsed_json = json.loads(match.group(1))
+                print("Извлечённый JSON:\n", parsed_json)
+                return parsed_json, None
+            except json.JSONDecodeError as e:
+                return None, f"Ошибка декодирования JSON: {e}"
+        else:
+            return None, "JSON не найден в ответе модели."
+    else:
+        return None, f"Ошибка: {response.status_code} - {response.text}"
+
+
+@app.route('/characters/generate', methods=['POST'])
+def generate_character():
+    data = request.get_json()
+
+    response_text, error = generate_character_data(data)
+    if error:
+        return jsonify({'error': error}), 500
+
+    try:
+        generated = response_text
+    except json.JSONDecodeError:
+        return jsonify({'error': 'Ответ от модели не является корректным JSON.'}), 500
+
+    return jsonify(generated), 200
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

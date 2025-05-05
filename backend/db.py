@@ -13,6 +13,30 @@ engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+# персонаж
+class Character(Base):
+    __tablename__ = "characters"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)                  # Имя персонажа
+    character_class = Column(String, nullable=False)       # Класс персонажа
+    race = Column(String, nullable=False)                  # Раса
+
+    strength = Column(Integer, default=0)                  # Сила
+    dexterity = Column(Integer, default=0)                 # Ловкость
+    constitution = Column(Integer, default=0)              # Телосложение
+    intelligence = Column(Integer, default=0)              # Интеллект
+    wisdom = Column(Integer, default=0)                    # Мудрость
+    charisma = Column(Integer, default=0)                  # Харизма
+
+    level = Column(Integer, default=1)                     # Уровень
+    appearance = Column(Text, default="")                  # Внешность
+    background = Column(Text, default="")                  # Предыстория
+
+    created_at = Column(DateTime, default=datetime.utcnow) # Дата создания
+    deleted_at = Column(DateTime, nullable=True)           # Дата удаления (если удалён)
+    deleted = Column(Boolean, default=False)               # Логическое удаление
+
 # Модель чата
 class Chat(Base):
     __tablename__ = "chats"
