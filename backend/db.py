@@ -46,6 +46,21 @@ class Chat(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     deleted = Column(Boolean, default=False)  # Флаг для логического удаления чата
 
+    name = Column(String, default="")                  # Имя персонажа
+    character_class = Column(String, default="")       # Класс персонажа
+    race = Column(String, default="")                  # Раса
+
+    strength = Column(Integer, default=0)                  # Сила
+    dexterity = Column(Integer, default=0)                 # Ловкость
+    constitution = Column(Integer, default=0)              # Телосложение
+    intelligence = Column(Integer, default=0)              # Интеллект
+    wisdom = Column(Integer, default=0)                    # Мудрость
+    charisma = Column(Integer, default=0)                  # Харизма
+
+    level = Column(Integer, default=1)                     # Уровень
+    appearance = Column(Text, default="")                  # Внешность
+    background = Column(Text, default="")                  # Предыстория
+    
     # Связь с сообщениями
     messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
 

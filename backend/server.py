@@ -11,14 +11,28 @@ CORS(app, supports_credentials=True)
 
 
 # Функция для сохранения чата
-def save_chat(title):
+def save_chat(data):
     db = SessionLocal()
     try:
-        chat = Chat(title=title)
+        chat = Chat(
+            title=data.get("title"),
+            name=data.get("name"),
+            character_class=data.get("character_class"),
+            race=data.get("race"),
+            level=data.get("level"),
+            strength=data.get("strength"),
+            dexterity=data.get("dexterity"),
+            constitution=data.get("constitution"),
+            intelligence=data.get("intelligence"),
+            wisdom=data.get("wisdom"),
+            charisma=data.get("charisma"),
+            appearance=data.get("appearance"),
+            background=data.get("background")
+        )
         db.add(chat)
         db.commit()
-        db.refresh(chat) 
-        print(f"Чат сохранен: {title}")  # Логирование
+        db.refresh(chat)
+        print(f"Чат сохранен: {chat.title}")
         return chat
     except Exception as e:
         print(f"Ошибка сохранения чата: {e}")
@@ -140,13 +154,16 @@ def get_chats():
 @app.route('/chats', methods=['POST'])
 def create_chat():
     data = request.get_json()
-    title = data.get('title', '')
-    if not title:
+    if not data.get('title'):
         return jsonify({'error': 'Title is required'}), 400
 
-    chat = save_chat(title)
+    chat = save_chat(data)
     if chat:
-        return jsonify({"id": chat.id, "title": chat.title, "created_at": chat.created_at.isoformat()}), 201
+        return jsonify({
+            "id": chat.id,
+            "title": chat.title,
+            "created_at": chat.created_at.isoformat()
+        }), 201
     else:
         return jsonify({'error': 'Failed to create chat'}), 500
     
@@ -168,6 +185,30 @@ def chat():
     # Сохранение сообщения пользователя
     save_message(chat_id=chat_id, sender="user", content=user_message)
 
+    db = SessionLocal()
+    chat = db.query(Chat).filter(Chat.id == chat_id).first()
+    if not chat:
+        db.close()
+        return jsonify({'response': 'Чат не найден.'}), 404
+
+    character_info = (
+        f"Имя: {chat.name}, "
+        f"Класс: {chat.character_class}, "
+        f"Раса: {chat.race}, "
+        f"Сила: {chat.strength}, Ловкость: {chat.dexterity}, Телосложение: {chat.constitution}, "
+        f"Интеллект: {chat.intelligence}, Мудрость: {chat.wisdom}, Харизма: {chat.charisma}, "
+        f"Уровень: {chat.level}\n"
+        f"Внешность: {chat.appearance}\n"
+        f"Предыстория: {chat.background}"
+    )
+
+    full_prompt = (
+        f"Ты мастер ролевой игры. Персонаж игрока:\n{character_info}\n"
+        f"Игрок пишет: {user_message}"
+    )
+
+    db.close()
+    print("Отправляемый prompt для ИИ:\n", full_prompt)
 
     # Получение токена
     access_token = get_access_token()
@@ -182,7 +223,7 @@ def chat():
     }
     payload = {
         "model": "GigaChat",
-        "messages": [{"role": "user", "content": user_message}],
+        "messages": [{"role": "user", "content": full_prompt}],
         "n": 1,
         "stream": False,
         "max_tokens": 512,
